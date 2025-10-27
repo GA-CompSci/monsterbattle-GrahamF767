@@ -149,7 +149,7 @@ public class GameDemo {
         } else if (choice == 2) {
             // Healer: high healing, low damage and shield
             gui.displayMessage("You chose Healer! Great recovery, but fragile.");
-            playerDamage -= (int)(Math.random() * 26) + 5;      // Reduce damage by 5-30
+            playerDamage -= (int)(Math.random() * 36) + 5;      // Reduce damage by 5-30
             playerShield -= (int)(Math.random() * 46) + 5;      // Reduce shield by 5-50
         } else {
             // Ninja: high speed, low healing and health
