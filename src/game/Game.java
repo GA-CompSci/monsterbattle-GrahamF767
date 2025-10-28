@@ -18,6 +18,8 @@ import gui.MonsterBattleGUI;
  */
 public class Game {
     
+    private static final boolean Monster = false;
+
     // The GUI (I had AI build most of this)
     private MonsterBattleGUI gui;
     
@@ -59,12 +61,18 @@ public class Game {
         // Add more monsters here!
         monsters.add(new Monster());
         gui.updateMonsters(monsters);
-monsters = new ArrayList<>();
-         // Special Abilities???????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
-        for(int k = 0; k< numMonsters; k++) monsters.add(new Monster());
-          
+        monsters = new ArrayList<>();
+         // Special Abilities?
+        for(int k = 0; k< numMonsters; k++) {
+            if(k == 0) {
+                monsters.add(new Monster("Vampire"));
+            }else {
+                monsters.add(new Monster());
+            }
+        }
          // PICK YOUR CHARACTER BUILD (using the 4 action buttons!)
         pickCharacterBuild();
+        
 
         
         
@@ -74,11 +82,14 @@ monsters = new ArrayList<>();
         gui.updateInventory(inventory);
         
         // TODO: Customize button labels
-        String[] buttons = {"Attack", "Defend", "Heal", "Use Item"};
+        String[] buttons = {"Attack(" + playerDamage + ")",
+                            "Defend(" + playerShield + ")",
+                            "Heal(" + playerHeal + ")",
+                            "Use Item"};
         gui.setActionButtons(buttons);
         
         // Welcome message
-        gui.displayMessage("Battle Start! Make your move");
+        gui.displayMessage("The battle has commenced! Make your move");
     }
     
     /**
@@ -108,9 +119,9 @@ monsters = new ArrayList<>();
         
         // Game over!
         if (playerHealth <= 0) {
-            gui.displayMessage("💀🎉 DEFEAT! You have been defeated...");
+            gui.displayMessage("💀🎉 VICTORY! You have been defeated...");
         } else {
-            gui.displayMessage(" :( VICTORY! You defeated all monsters!");
+            gui.displayMessage(" :( DEFEAT! YOU WIN and defeated all monsters!");
         }
     }
     
@@ -121,7 +132,7 @@ monsters = new ArrayList<>();
      */
     private int chooseDifficulty() {
         // Set button labels to difficulty levels
-        String[] difficulties = {"If you lose this... (3-4)", "Midladder Menaces (4-5)", " 🎉 Cooked 🎉 (6-7)", " 💀 Deadly 💀 (10-15)"};
+        String[] difficulties = {"If you lose this... (3-4)", "Be there or be 💀 (4-5)", " 🎉 Cooked 🎉 (6-7)", " 💀 Deadly 💀 (10-15)"};
         gui.setActionButtons(difficulties);
         
         // Display choice prompt
@@ -150,8 +161,8 @@ monsters = new ArrayList<>();
         return numMonsters;
     }
     /**
-     * Let player pick their character build using the 4 buttons
-     * This demonstrates using the GUI for menu choices!
+     * Let player pick their character build using thchoicese 4 buttons
+     * This demonstrates using the GUI for menu !
      */
     private void pickCharacterBuild() {
         // Set button labels to character classes
@@ -231,10 +242,27 @@ monsters = new ArrayList<>();
      * - Special effects?
      */
     private void attackMonster() {
-        // TODO: Implement your attack!
-        // Hint: Look at GameDemo.java for an example
-        
-        gui.displayMessage("TODO: Implement attack!");
+        // TODO: Target more inteleganly
+        Monster target = getRandomLivingMonster();
+        int damage = playerDamage; // 0 - playerDamage
+        if(damage == 0) {
+            //hurt yourself
+            playerHealth -= 5;
+            gui.displayMessage("Nice going. you somehoe managed to hit yourself. HEALTH - 5");
+        } else if(damage == playerDamage){
+            gui.displayMessage("You smell so bad the monster ran away");
+            target.takeDamage(target.health());
+        } else {
+            target.takeDamage(damage);
+            gui.displayMessage("You hit the mosnter for " + damage + " damage");
+        }
+        // Show which one we hit
+        int index = monsters.indexOf(target);
+        gui.highlightMonster(index);
+        gui.pause(300);
+        gui.highlightMonster(-1);
+        // update the list
+        gui.updateMonsters(monsters);
     }
     
     /**
@@ -308,6 +336,27 @@ monsters = new ArrayList<>();
         return count;
     }
     
+   private ArrayList<game.Monster> getSpecialMonsters() {
+        ArrayList<Monster> result = new ArrayList<>();
+        Monster m;
+        For(Monster m : monsters){
+            if(m.special() != null && !m.special().equals("") && m.health() > 0){
+                result.add(m);
+            }
+        }
+        return result;
+    }
+//return a list of monsters with spped greater than players
+    private ArrayList<game.Monster> getSpeedyMonsters() {
+        ArrayList<Monster> result = new ArrayList<>();
+        Monster m;
+        For(Monster m : monsters){
+            if(m.speed() > playerSpeed && m.health() > 0){
+                result.add(m);
+            }
+        }
+        return result;
+    }
     /**
      * Get a random living monster
      */
