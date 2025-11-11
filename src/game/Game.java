@@ -60,15 +60,17 @@ public class Game {
         // CHOOSE DIFFICULTY (number of monsters to face)
         int numMonsters = chooseDifficulty();
         monsters = new ArrayList<>();
-        // Should we add special abilities? 
+    
+        
         for(int k = 0; k < numMonsters; k++) {
             if(k == 0) {
                 // add a monster with a special ability
                 monsters.add(new Monster("Vampire"));
-            }else {
-                monsters.add(new Monster());
+            } else if (k == 1) {
+                monsters.add(new Monster("Armored"));
+            } else if (k == 2) {
+                monsters.add(new Monster("Raged"));
             }
-            
         }
         gui.updateMonsters(monsters);  
 
@@ -85,7 +87,7 @@ public class Game {
         String[] buttons = {"Attack (" + playerDamage + ")", 
                             "Defend (" + playerShield + ")", 
                             "Heal (" + playerHeal + ")", 
-                            "Use Item"};
+                            "Special Ability"};
         gui.setActionButtons(buttons);
         
         // Welcome message
@@ -189,14 +191,14 @@ public class Game {
             // Fighter: high damage, low healing and shield
             gui.displayMessage("You chose Fighter! High damage, but weak defense.");
             playerShield -= (int)(Math.random() * 20 + 1) + 5;  // Reduce shield by 5-25
-            playerHeal -= (int)(Math.random() * 20 + 1) + 5;        // Reduce heal by 5-25
+            playerHeal -= (int)(Math.random() * 20 + 1) + 5;    // Reduce heal by 5-25
 
             playerSpeed = (int)(Math.random() * 20 + 1) + 5;
         } else if (choice == 1) {
             // Tank: high shield, low damage and speed
             gui.displayMessage("You chose Tank! Tough defense, but slow attacks.");
             playerSpeed -= (int)(Math.random() * 9) + 1;        // Reduce speed by 1-9
-            playerDamage -= (int)(Math.random() * 20 + 1) + 5;   // Reduce damage by 5-25
+            playerDamage -= (int)(Math.random() * 20 + 1) + 5;  // Reduce damage by 5-25
             playerSpeed = (int)(Math.random() * 9) + 1;
         } else if (choice == 2) {
             // Healer: high healing, low damage and shield
@@ -235,8 +237,8 @@ public class Game {
             case 2: // Heal button
                 heal();
                 break;
-            case 3: // Use Item button
-                useItem();
+            case 3: // Use Special button
+                useSpecial();
                 break;
         }
     }
@@ -262,9 +264,24 @@ public class Game {
             gui.displayMessage("Critical hit! You slayed the monster");
             target.takeDamage(target.health());
         } else {
+
+            // MONSTER SPECIAL ARMORED
+            Monster monster;
+            if(monster.special().equals("Armored")){
+                //25% damage reduction
+                int damageTaken;
+                monster.takeDamage((damageTaken / 3) * 5);
+                gui.displayMessage("The Armored monster's armor prevented " + ((damageTaken / 3)* 5) + " damage!");
            target.takeDamage(damage); 
            gui.displayMessage("You hit the monster for " + damage + " damage");
         }
+
+            // MONSTER SPECIAL RAGED
+            if(monster.special().equals("Raged")){
+                damage *= 1.5;
+                gui.displayMessage("The Raged monster deals 50% more damage to you!");
+            }
+        
         // Show which one we hit
         int index = monsters.indexOf(target);
         gui.highlightMonster(index);
@@ -306,7 +323,7 @@ public class Game {
     /**
      * Use an item from inventory
      */
-    private void useItem() {
+    private void useSpecial() {
         if (inventory.isEmpty()) {
             gui.displayMessage("No items in inventory!");
             return;
@@ -344,11 +361,29 @@ public class Game {
                 playerHealth -= damageTaken;
                 gui.displayMessage("Monster hits you for " + damageTaken + " damage!");
                 gui.updatePlayerHealth(playerHealth);
+            } 
+            
+            //VAMPIRE SPECIAL (Heals what it attacks)
+            if(monster.special().equals("Vampire")){
+                monster.takeDamage(-damageTaken);
+                gui.displayMessage("The Vampire healed for " + damageTaken + " health!");
+            } 
+
+            // ARMORED SPECIAL (takes less damage.)
+            if(monster.special().equals("Armored")){
+                //25% damage reduction
+                monster.takeDamage((damageTaken / 3) * 5);
+                gui.displayMessage("The Armored monster's armor prevented " + ((damageTaken / 3)* 5) + " damage!");
+
+                // increase monster damage by 50% for next attack
+                // this is handled in the damage calculation above
             }
+
             int index = monsters.indexOf(monster);
             gui.highlightMonster(index);
             gui.pause(300);
             gui.highlightMonster(-1);
+            gui.updateMonsters(monsters);
         }
 
     }

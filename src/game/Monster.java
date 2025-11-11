@@ -32,5 +32,9 @@ public class Monster {
     // MUTATOR METHODS
     public void takeDamage(int dmg){
         health -= dmg;
+
+    
     }
+
+    public void heal(int heal){ health += heal;}
 }
