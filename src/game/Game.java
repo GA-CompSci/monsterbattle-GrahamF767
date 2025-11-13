@@ -255,32 +255,33 @@ public class Game {
         Monster target = getRandomLivingMonster();
         lastAttacked = target;
         int damage = (int)(Math.random() * playerDamage + 1); // 0 - playerDamage
+        
+        // FAILED ROLL
         if(damage == 0) {
             // hurt yourself
             playerHealth -= 5;
             gui.displayMessage("Critical fail! You hit yourself for 5 points");
             gui.updatePlayerHealth(playerHealth);
+        
+        // CRITICAL HIT
         } else if(damage == playerDamage){
             gui.displayMessage("Critical hit! You slayed the monster");
             target.takeDamage(target.health());
+        
+        // SPECIALS + EVERYTHING ELSE
         } else {
-
             // MONSTER SPECIAL ARMORED
-            Monster monster;
-            if(monster.special().equals("Armored")){
+            if(target.special().equals("Armored")){
                 //25% damage reduction
-                int damageTaken;
-                monster.takeDamage((damageTaken / 3) * 5);
-                gui.displayMessage("The Armored monster's armor prevented " + ((damageTaken / 3)* 5) + " damage!");
-           target.takeDamage(damage); 
-           gui.displayMessage("You hit the monster for " + damage + " damage");
-        }
-
-            // MONSTER SPECIAL RAGED
-            if(monster.special().equals("Raged")){
-                damage *= 1.5;
-                gui.displayMessage("The Raged monster deals 50% more damage to you!");
+                target.takeDamage((int)(damage* .75));
+                gui.displayMessage("The Armored monster's armor prevented " + (damage * .75) + " damage!");
             }
+            // NO SPECIALS
+            else {
+                target.takeDamage(damage); 
+                gui.displayMessage("You hit the monster for " + damage + " damage");
+            }
+        }
         
         // Show which one we hit
         int index = monsters.indexOf(target);
@@ -317,11 +318,11 @@ public class Game {
         playerHealth += playerHeal;
         gui.updatePlayerHealth(playerHealth);
         
-        gui.displayMessage("The heal spirit came and healed you " + playerHeal + " Health. Buy it food later.");
+        gui.displayMessage("The heal spirit came and healed you " + playerHeal + " Health.");
     }
     
     /**
-     * Use an item from inventory
+     * Use player special (in progress)
      */
     private void useSpecial() {
         if (inventory.isEmpty()) {
@@ -348,9 +349,24 @@ public class Game {
         if(lastAttacked != null && lastAttacked.health() > 0 && !attackers.contains(lastAttacked)) 
             attackers.add(lastAttacked);
 
+        // MONSTERS ATTACK
         for (Monster monster : attackers) {
-            // shoudn't the monster's damage dealt logic be handle in the Monster class? 
             int damageTaken = (int)(Math.random() * monster.damage() + 1);
+
+            // HANDLE SPECIAL MONSTERS COMES BEFORE SHIELD MITIGATION
+            //VAMPIRE SPECIAL (Heals what it attacks)
+            if(monster.special().equals("Vampire")){
+                monster.takeDamage(-damageTaken);
+                gui.displayMessage("The Vampire healed for " + damageTaken + " health!");
+            } 
+            // MONSTER SPECIAL RAGED
+            else if(monster.special().equals("Raged")){
+                damageTaken *= 1.5;
+                gui.displayMessage("The Raged monster deals 50% more damage to you!");
+            }
+
+
+            // SHIELD MITIGATION AND APPLY DAMAGE TO PLAYER
             if (shieldPower > 0) {
                 double absorbance = Math.min(damageTaken, shieldPower);
                 damageTaken -= absorbance;
@@ -362,22 +378,6 @@ public class Game {
                 gui.displayMessage("Monster hits you for " + damageTaken + " damage!");
                 gui.updatePlayerHealth(playerHealth);
             } 
-            
-            //VAMPIRE SPECIAL (Heals what it attacks)
-            if(monster.special().equals("Vampire")){
-                monster.takeDamage(-damageTaken);
-                gui.displayMessage("The Vampire healed for " + damageTaken + " health!");
-            } 
-
-            // ARMORED SPECIAL (takes less damage.)
-            if(monster.special().equals("Armored")){
-                //25% damage reduction
-                monster.takeDamage((damageTaken / 3) * 5);
-                gui.displayMessage("The Armored monster's armor prevented " + ((damageTaken / 3)* 5) + " damage!");
-
-                // increase monster damage by 50% for next attack
-                // this is handled in the damage calculation above
-            }
 
             int index = monsters.indexOf(monster);
             gui.highlightMonster(index);
@@ -421,6 +421,22 @@ public class Game {
         }
         return result;
     }
+
+    /**
+     * Find all living monsters with health below 30
+     *
+     * @return ArrayList of monsters with health < 30
+     */
+    private ArrayList<Monster> getWeakMonsters() {
+        ArrayList<Monster> result = new ArrayList<>();
+        for (Monster m : monsters) {
+            // consider only living monsters with health < 30
+            if (m.health() > 0 && m.health() < 30) {
+                result.add(m);
+            }
+        }
+        return result;
+    }
     
     /**
      * Get a random living monster
@@ -434,6 +450,44 @@ public class Game {
         return alive.get((int)(Math.random() * alive.size()));
     }
     
+
+private ArrayList<Monster> getHealthyMonster() {
+    ArrayList<Monster> result = new ArrayList<>();
+    for(Monster m : monsters) {
+        if(m.health() > 0 && m.health() > 50) {
+            result.add(m);
+
+        }
+    }
+    return result;
+}
+
+// get monster with strong damage
+
+private ArrayList<Monster> getStrongMonster() {
+    ArrayList<Monster> result = new ArrayList<>();
+    for(Monster m : monsters) {
+        if (m.damage > 30) {
+            result.add(m);
+        }
+    }
+    return result;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     // TODO: Add more helper methods as you need them!
     // Examples:
     // - Method to find the strongest monster
