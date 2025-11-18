@@ -31,7 +31,6 @@ public class Game {
     private int playerDamage;
     private int playerHeal;    
     private int playerShield;
-    
     /**
      * Main method - start YOUR game!
      */
@@ -55,21 +54,24 @@ public class Game {
      */
     private void setupGame() {
         // Create the GUI
-        gui = new MonsterBattleGUI("Monster Battle - Mr. A");
+        gui = new MonsterBattleGUI("Monster Battle - Graham Fistek");
 
         // CHOOSE DIFFICULTY (number of monsters to face)
         int numMonsters = chooseDifficulty();
         monsters = new ArrayList<>();
     
-        
         for(int k = 0; k < numMonsters; k++) {
-            if(k == 0) {
+            // make a random number for monsters
+            double randMcRandomRandALot = Math.random();
+            if(randMcRandomRandALot < 0.2) {
                 // add a monster with a special ability
                 monsters.add(new Monster("Vampire"));
-            } else if (k == 1) {
+            } else if (randMcRandomRandALot < 0.4) {
                 monsters.add(new Monster("Armored"));
-            } else if (k == 2) {
+            } else if (randMcRandomRandALot < 0.6) {
                 monsters.add(new Monster("Raged"));
+            } else {
+                monsters.add(new Monster()); // <-- you forgot this
             }
         }
         gui.updateMonsters(monsters);  
@@ -77,8 +79,6 @@ public class Game {
         // PICK YOUR CHARACTER BUILD (using the 4 action buttons!)
         pickCharacterBuild(); 
 
-
-        // TODO: Create starting items
         inventory = new ArrayList<>();
         // Add items here! Look at GameDemo.java for examples
         gui.updateInventory(inventory);
@@ -87,9 +87,15 @@ public class Game {
         String[] buttons = {"Attack (" + playerDamage + ")", 
                             "Defend (" + playerShield + ")", 
                             "Heal (" + playerHeal + ")", 
-                            "Special Ability"};
+                            "Use Item"};
         gui.setActionButtons(buttons);
         
+        // Create items
+        inventory = new ArrayList<>();
+        addDamagePotion(3);
+        addFireball(2);
+        gui.updateInventory(inventory);
+
         // Welcome message
         gui.displayMessage("Battle Start! Make your move.");
     }
@@ -145,13 +151,13 @@ public class Game {
         int numMonsters = 0;
         switch(choice){
             case 0:
-                numMonsters = (int)(Math.random() * (4-2+1)) + 2;
+                numMonsters = (int)(Math.random() * (2+1)) + 2; // 2-4
                 break;
             case 1: 
-                numMonsters = (int)(Math.random() * (5-4+1)) + 4;
+                numMonsters = (int)(Math.random() * (5-4+1)) + 4; // 4-5
                 break;
             case 2:
-                numMonsters = (int)(Math.random() * (7-6+1)) + 6;
+                numMonsters = (int)(Math.random() * (7-6+1)) + 6; // 6-7
                 break;
             case 3:
                 numMonsters = (int)(Math.random() * (15-10+1)) + 10;
@@ -237,8 +243,8 @@ public class Game {
             case 2: // Heal button
                 heal();
                 break;
-            case 3: // Use Special button
-                useSpecial();
+            case 3: // Use Item button
+                useItem();
                 break;
         }
     }
@@ -322,9 +328,9 @@ public class Game {
     }
     
     /**
-     * Use player special (in progress)
+     * Use player items (in progress)
      */
-    private void useSpecial() {
+    private void useItem() {
         if (inventory.isEmpty()) {
             gui.displayMessage("No items in inventory!");
             return;
@@ -361,8 +367,8 @@ public class Game {
             } 
             // MONSTER SPECIAL RAGED
             else if(monster.special().equals("Raged")){
-                damageTaken *= 1.5;
-                gui.displayMessage("The Raged monster deals 50% more damage to you!");
+                damageTaken *= 3.0;
+                gui.displayMessage("The Raged monster deals 300% more damage to you!");
             }
 
 
@@ -421,22 +427,6 @@ public class Game {
         }
         return result;
     }
-
-    /**
-     * Find all living monsters with health below 30
-     *
-     * @return ArrayList of monsters with health < 30
-     */
-    private ArrayList<Monster> getWeakMonsters() {
-        ArrayList<Monster> result = new ArrayList<>();
-        for (Monster m : monsters) {
-            // consider only living monsters with health < 30
-            if (m.health() > 0 && m.health() < 30) {
-                result.add(m);
-            }
-        }
-        return result;
-    }
     
     /**
      * Get a random living monster
@@ -449,44 +439,33 @@ public class Game {
         if (alive.isEmpty()) return null;
         return alive.get((int)(Math.random() * alive.size()));
     }
+
+    // --------ITEMS--------
     
-
-private ArrayList<Monster> getHealthyMonster() {
-    ArrayList<Monster> result = new ArrayList<>();
-    for(Monster m : monsters) {
-        if(m.health() > 0 && m.health() > 50) {
-            result.add(m);
-
-        }
+    private void addFireball(int damage) {
+        inventory.add(new Item("FIREBALL", "🔥", () -> {
+            for (Monster m : monsters) {
+                if (m.health() > 0) {
+                    m.takeDamage(damage);
+                }
+            }
+            gui.displayMessage("BAM! All monsters take " + damage + " damage!");
+            gui.updateMonsters(monsters);
+        }));
     }
-    return result;
-}
 
-// get monster with strong damage
-
-private ArrayList<Monster> getStrongMonster() {
-    ArrayList<Monster> result = new ArrayList<>();
-    for(Monster m : monsters) {
-        if (m.damage > 30) {
-            result.add(m);
-        }
+     /**
+     * Add a damage potion to inventory
+     */
+    private void addDamagePotion(int playerDamage) {
+        double damageBoost = playerDamage * 1.2; // 20% boost per potion
+        inventory.add(new Item("Damage Potion", "💪", () -> {
+            playerDamage += damageBoost;
+            gui.displayMessage("💪 Used Damage Potion! Damage increased by " + damageBoost + "!");
+        }));
     }
-    return result;
+    
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     // TODO: Add more helper methods as you need them!
     // Examples:
@@ -494,4 +473,4 @@ private ArrayList<Monster> getStrongMonster() {
     // - Method to check if player has a specific item
     // - Method to add special effects
     // - etc.
-}
+
