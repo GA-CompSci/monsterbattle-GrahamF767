@@ -32,22 +32,16 @@ package game;
         this.onUse = onUse;
     }
     
-    /**
-     * Get the item's name
-     * @return The name
-     */
+    
     public String getName() {
-        return name;
-    }
-    
-    /**
-     * Get the item's display icon
-     * @return The icon
-     */
-    public String getIcon() {
-        return icon;
-    }
-    
+    return name;
+}
+
+public String getIcon() {
+    return icon;
+}
+
+
     /**
      * Use this item (executes the onUse function)
      */

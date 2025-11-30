@@ -91,10 +91,25 @@ public class Game {
         gui.setActionButtons(buttons);
         
         // Create items
-        inventory = new ArrayList<>();
-        addDamagePotion(3);
-        addFireball(2);
-        gui.updateInventory(inventory);
+inventory = new ArrayList<>();
+
+// Add 3 Damage Potions
+for (int i = 0; i < 1; i++) {
+    addDamagePotion();
+}
+
+// Add 3 Fireballs
+for (int i = 0; i < 1; i++) {
+    addFireball(40);
+}
+
+// Add 3 Healing Potions
+for (int i = 0; i < 1; i++) {
+    addHealingPotion(50); // heals 50 HP each
+}
+
+gui.updateInventory(inventory);
+
 
         // Welcome message
         gui.displayMessage("Battle Start! Make your move.");
@@ -327,20 +342,64 @@ public class Game {
         gui.displayMessage("The heal spirit came and healed you " + playerHeal + " Health.");
     }
     
-    /**
-     * Use player items (in progress)
-     */
-    private void useItem() {
-        if (inventory.isEmpty()) {
-            gui.displayMessage("No items in inventory!");
-            return;
-        }
-        
-        // Use first item
-        Item item = inventory.remove(0);
-        gui.updateInventory(inventory);
-        item.use();  // The item knows what to do!
+   /**
+ * Use player items (choose which one)
+ */
+/**
+ * Use player items (choose which one)
+ */
+/**
+ * Use player items (choose which one)
+ */
+private void useItem() {
+    if (inventory.isEmpty()) {
+        gui.displayMessage("No items in inventory!");
+        return;
     }
+
+    // Build up to 3 item choices (slots 1–3)
+    int maxChoices = Math.min(3, inventory.size());
+    String[] itemChoices = new String[4];
+
+    // First slot is always "Back"
+    itemChoices[0] = "⬅ Back";
+
+    // Fill remaining slots with items
+    for (int i = 0; i < maxChoices; i++) {
+        itemChoices[i + 1] = inventory.get(i).getIcon() + " " + inventory.get(i).getName();
+    }
+    // Fill unused slots with "Empty"
+    for (int i = maxChoices + 1; i < 4; i++) {
+        itemChoices[i] = "Empty";
+    }
+
+    gui.setActionButtons(itemChoices);
+    gui.displayMessage("---- Choose an item to use ----");
+
+    int choice = gui.waitForAction();
+
+    if (choice == 0) {
+        // Back button pressed → return to main actions
+        gui.displayMessage("Cancelled item use.");
+    } else if (choice <= maxChoices) {
+        // Use selected item
+        Item chosen = inventory.remove(choice - 1); // shift index because slot 0 is Back
+        gui.updateInventory(inventory);
+        chosen.use();
+    } else {
+        gui.displayMessage("Invalid choice!");
+    }
+
+    // Reset action buttons back to normal
+    String[] buttons = {"Attack (" + playerDamage + ")", 
+                        "Defend (" + playerShield + ")", 
+                        "Heal (" + playerHeal + ")", 
+                        "Use Item"};
+    gui.setActionButtons(buttons);
+}
+
+
+
     
     /**
      * Monster attacks player
@@ -457,7 +516,7 @@ public class Game {
      /**
      * Add a damage potion to inventory
      */
-    private void addDamagePotion(int playerDamage) {
+    private void addDamagePotion() {
         double damageBoost = playerDamage * 1.2; // 20% boost per potion
         inventory.add(new Item("Damage Potion", "💪", () -> {
             playerDamage += damageBoost;
@@ -465,6 +524,17 @@ public class Game {
         }));
     }
     
+        /**
+     * Add a healing potion to inventory
+     */
+    private void addHealingPotion(int healAmount) {
+        inventory.add(new Item("Healing Potion", "🧪", () -> {
+            playerHealth += healAmount;
+            gui.updatePlayerHealth(playerHealth);
+            gui.displayMessage("🧪 Used Healing Potion! Restored " + healAmount + " health.");
+        }));
+    }
+
 }
 
     // TODO: Add more helper methods as you need them!
