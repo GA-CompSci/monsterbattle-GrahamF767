@@ -31,6 +31,8 @@ public class Game {
     private int playerDamage;
     private int playerHeal;    
     private int playerShield;
+    private boolean isGolem = false;
+
     /**
      * Main method - start YOUR game!
      */
@@ -91,10 +93,25 @@ public class Game {
         gui.setActionButtons(buttons);
         
         // Create items
-        inventory = new ArrayList<>();
-        addDamagePotion(3);
-        addFireball(2);
-        gui.updateInventory(inventory);
+inventory = new ArrayList<>();
+
+// Add 3 Damage Potions
+for (int i = 0; i < 1; i++) {
+    addDamagePotion();
+}
+
+// Add 3 Fireballs
+for (int i = 0; i < 1; i++) {
+    addFireball(40);
+}
+
+// Add 3 Healing Potions
+for (int i = 0; i < 1; i++) {
+    addHealingPotion(50); // heals 50 HP each
+}
+
+gui.updateInventory(inventory);
+
 
         // Welcome message
         gui.displayMessage("Battle Start! Make your move.");
@@ -195,28 +212,32 @@ public class Game {
         // Customize stats based on character choice
         if (choice == 0) {
             // Fighter: high damage, low healing and shield
-            gui.displayMessage("You chose Fighter! High damage, but weak defense.");
+            gui.displayMessage("You chose P.E.K.K.A! High damage, but weak defense.");
             playerShield -= (int)(Math.random() * 20 + 1) + 5;  // Reduce shield by 5-25
             playerHeal -= (int)(Math.random() * 20 + 1) + 5;    // Reduce heal by 5-25
-
             playerSpeed = (int)(Math.random() * 20 + 1) + 5;
+            
         } else if (choice == 1) {
+
             // Tank: high shield, low damage and speed
-            gui.displayMessage("You chose Tank! Tough defense, but slow attacks.");
+            gui.displayMessage("You chose Sneaky Golem! Tough defense, but slow attacks.");
             playerSpeed -= (int)(Math.random() * 9) + 1;        // Reduce speed by 1-9
             playerDamage -= (int)(Math.random() * 20 + 1) + 5;  // Reduce damage by 5-25
             playerSpeed = (int)(Math.random() * 9) + 1;
+            isGolem = true;
+            
         } else if (choice == 2) {
             // Healer: high healing, low damage and shield
-            gui.displayMessage("You chose Healer! Great recovery, but fragile.");
+            gui.displayMessage("You chose Battle Healer! Great recovery, but fragile.");
             playerDamage -= (int)(Math.random() * 21) + 5;      // Reduce damage by 5-25
             playerShield -= (int)(Math.random() * 10) + 1;      // Reduce shield by 5-25
+            
         } else {
-            // Ninja: high speed, low healing and health
-            gui.displayMessage("You chose Ninja! Fast and deadly, but risky.");
+            // Bandit: high speed, low healing and health
+            gui.displayMessage("You chose Bandit! Fast and deadly, but risky.");
             playerHeal -= (int)(Math.random() * 21) + 5;        // Reduce heal by 5-25
             playerHealth -= (int)(Math.random() * 21) + 5;  
-            playerSpeed = (int)(Math.random() * 6) + 6;
+            playerSpeed = (int)(Math.random() * 9) + 6;
         }
         if(playerHeal < 0) playerHeal = 0;
         
@@ -327,20 +348,64 @@ public class Game {
         gui.displayMessage("The heal spirit came and healed you " + playerHeal + " Health.");
     }
     
-    /**
-     * Use player items (in progress)
-     */
-    private void useItem() {
-        if (inventory.isEmpty()) {
-            gui.displayMessage("No items in inventory!");
-            return;
-        }
-        
-        // Use first item
-        Item item = inventory.remove(0);
-        gui.updateInventory(inventory);
-        item.use();  // The item knows what to do!
+   /**
+ * Use player items (choose which one)
+ */
+/**
+ * Use player items (choose which one)
+ */
+/**
+ * Use player items (choose which one)
+ */
+private void useItem() {
+    if (inventory.isEmpty()) {
+        gui.displayMessage("No items in inventory!");
+        return;
     }
+
+    // Build up to 3 item choices (slots 1–3)
+    int maxChoices = Math.min(3, inventory.size());
+    String[] itemChoices = new String[4];
+
+    // First slot is always "Back"
+    itemChoices[0] = "⬅ Back";
+
+    // Fill remaining slots with items
+    for (int i = 0; i < maxChoices; i++) {
+        itemChoices[i + 1] = inventory.get(i).getIcon() + " " + inventory.get(i).getName();
+    }
+    // Fill unused slots with "Empty"
+    for (int i = maxChoices + 1; i < 4; i++) {
+        itemChoices[i] = "Empty";
+    }
+
+    gui.setActionButtons(itemChoices);
+    gui.displayMessage("---- Choose an item to use ----");
+
+    int choice = gui.waitForAction();
+
+    if (choice == 0) {
+        // Back button pressed → return to main actions
+        gui.displayMessage("Cancelled item use.");
+    } else if (choice <= maxChoices) {
+        // Use selected item
+        Item chosen = inventory.remove(choice - 1); // shift index because slot 0 is Back
+        gui.updateInventory(inventory);
+        chosen.use();
+    } else {
+        gui.displayMessage("Invalid choice!");
+    }
+
+    // Reset action buttons back to normal
+    String[] buttons = {"Attack (" + playerDamage + ")", 
+                        "Defend (" + playerShield + ")", 
+                        "Heal (" + playerHeal + ")", 
+                        "Use Item"};
+    gui.setActionButtons(buttons);
+}
+
+
+
     
     /**
      * Monster attacks player
@@ -380,6 +445,22 @@ public class Game {
                 gui.displayMessage("You block for " + absorbance + " damage. You have " + shieldPower + " shield left.");
             }
             if (damageTaken > 0) {
+
+                if (damageTaken > 0) {
+
+                    // GOLEM ASPECTS
+                    if (isGolem) {
+                        int reduced = (int)(damageTaken * 0.80);  // takes only 80%
+                        gui.displayMessage("The Golem absorbs 20% damage!");
+                        damageTaken = reduced;
+                        playerHealth = 150;
+                    }
+
+                playerHealth -= damageTaken;
+                gui.displayMessage("Monster hits you for " + damageTaken + " damage!");
+                gui.updatePlayerHealth(playerHealth);
+}
+
                 playerHealth -= damageTaken;
                 gui.displayMessage("Monster hits you for " + damageTaken + " damage!");
                 gui.updatePlayerHealth(playerHealth);
@@ -457,7 +538,7 @@ public class Game {
      /**
      * Add a damage potion to inventory
      */
-    private void addDamagePotion(int playerDamage) {
+    private void addDamagePotion() {
         double damageBoost = playerDamage * 1.2; // 20% boost per potion
         inventory.add(new Item("Damage Potion", "💪", () -> {
             playerDamage += damageBoost;
@@ -465,12 +546,16 @@ public class Game {
         }));
     }
     
-}
+        /**
+     * Add a healing potion to inventory
+     */
+    private void addHealingPotion(int healAmount) {
+        inventory.add(new Item("Healing Potion", "🧪", () -> {
+            playerHealth += healAmount;
+            gui.updatePlayerHealth(playerHealth);
+            gui.displayMessage("🧪 Used Healing Potion! Restored " + healAmount + " health.");
+        }));
+    }
 
-    // TODO: Add more helper methods as you need them!
-    // Examples:
-    // - Method to find the strongest monster
-    // - Method to check if player has a specific item
-    // - Method to add special effects
-    // - etc.
+}
 
